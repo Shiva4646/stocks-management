@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Copy all styles from index.html */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+        .content {
+            flex: 1;
+        }
+        /* ...copy all other styles from index.html... */
+
+        /* Update these button styles in the <style> tag */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1rem 0;
+        }
+
+        .btn-action {
+            display: flex;
+            align-items: center;  /* Changed from flex-direction: column */
+            background: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            width: 160px;  /* Reduced width */
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-icon {
+            width: 2rem;  /* Smaller icon */
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;  /* Changed from margin-bottom */
+            transition: transform 0.2s ease;
+        }
+
+        .btn-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .btn-subtitle {
+            font-size: 0.75rem;
+            color: #6B7280;
+        }
+
+        /* Button Variants */
+        .btn-inward .btn-icon {
+            background: linear-gradient(135deg, #34D399, #0D9488);
+            color: white;
+        }
+
+        .btn-withdraw .btn-icon {
+            background: linear-gradient(135deg, #FBBF24, #D97706);
+            color: white;
+        }
+
+        .btn-scrap .btn-icon {
+            background: linear-gradient(135deg, #F87171, #DC2626);
+            color: white;
+        }
+
+        .btn-inward .btn-title { color: #0D9488; }
+        .btn-withdraw .btn-title { color: #D97706; }
+        .btn-scrap .btn-title { color: #DC2626; }
+
+        /* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 1rem;
+}
+
+.modal.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    width: 100%;
+    max-width: 450px;
+    position: relative;
+    transform: translateY(-20px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.modal.show .modal-content {
+    transform: translateY(0) scale(1);
+}
+
+/* Ensure modals stack properly */
+#withdrawModal {
+    z-index: 1001;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.modal-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+    line-height: 1;
+}
+
+.close-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F3F4F6;
+    border: none;
+    color: #4B5563;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1.5rem;
+}
+
+.close-btn:hover {
+    background: #E5E7EB;
+    color: #1F2937;
+    transform: rotate(90deg);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background: #F9FAFB;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #0D9488;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+    background: white;
+}
+
+.form-group input:hover {
+    border-color: #D1D5DB;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #E5E7EB;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: #0D9488;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.btn-primary:hover {
+    background: #0F766E;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary {
+    padding: 0.75rem 1.5rem;
+    background: #F3F4F6;
+    color: #374151;
+    border: 1px solid #D1D5DB;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background: #E5E7EB;
+    border-color: #9CA3AF;
+}
+
+
+.btn-primary.success i {
+    animation: scale-check 0.5s ease forwards;
+}
+
+@keyframes button-loading-spinner {
+    from {
+        transform: rotate(0turn);
+    }
+    to {
+        transform: rotate(1turn);
+    }
+}
+
+@keyframes scale-check {
+    0% {
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.25);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Add these styles in your <style> tag */
+.btn-primary.loading {
+    position: relative;
+    color: transparent;
+}
+
+.btn-primary.loading i,
+.btn-primary.loading span {
+    opacity: 0;
+}
+
+.btn-primary.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-right-color: transparent;
+    animation: spin 0.8s linear infinite;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.btn-primary.success {
+    background-color: #059669;
+}
+
+.btn-primary.success i {
+    transform: scale(0);
+    animation: popIn 0.3s ease forwards;
+}
+
+@keyframes popIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+}
+
+        
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation Bar -->
+    <header class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo section -->
+                <div class="flex items-center space-x-3">
+                    <svg class="w-10 h-10 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                    <h1 class="text-2xl font-bold text-gray-800">Stocks</h1>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="flex items-center space-x-8">
+                    <a href="index.html" class="nav-link text-gray-700 font-medium hover:text-teal-600 transition-colors">
+                        <i class="fas fa-home mr-2"></i>Home
+                    </a>
+                    <a href="stocks.html" class="nav-link text-gray-700 font-medium hover:text-teal-600 transition-colors active">
+                        <i class="fas fa-boxes mr-2"></i>Stock
+                    </a>
+                    <a href="report.html" class="nav-link text-gray-700 font-medium hover:text-teal-600 transition-colors">
+                        <i class="fas fa-chart-bar mr-2"></i>Reports
+                    </a>
+                    
+                    <!-- Notification Button -->
+                    <button id="notification-btn" class="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
+                        <i class="fas fa-bell text-gray-700"></i>
+                        <span id="notification-count" 
+                              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            0
+                        </span>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section with Action Buttons -->
+    <section class="bg-gradient-to-r from-teal-600 to-teal-700 py-12">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="action-buttons">
+                <!-- Inward Button -->
+                <button id="inwardBtn" class="btn-action btn-inward">
+                    <div class="btn-icon">
+                        <i class="fas fa-arrow-down fa-lg"></i>
+                    </div>
+                    <span class="btn-title">Inward</span>
+                    
+                </button>
+
+                <!-- Withdraw Button -->
+                <button id="withdrawBtn" class="btn-action btn-withdraw">
+                    <div class="btn-icon">
+                        <i class="fas fa-arrow-up fa-lg"></i>
+                    </div>
+                    <span class="btn-title">Withdrawn</span>
+                    
+                </button>
+
+                <!-- Scrap Button -->
+                <button id="scrapBtn" class="btn-action btn-scrap">
+                    <div class="btn-icon">
+                        <i class="fas fa-trash-alt fa-lg"></i>
+                    </div>
+                    <span class="btn-title">Scrap</span>
+                    
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-8 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">S.No</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Part No</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Description</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Current Total</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-emerald-600 uppercase tracking-wider">Stock In</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-amber-600 uppercase tracking-wider">Stock Out</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-red-600 uppercase tracking-wider">Scrap</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Table rows will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Inward Modal -->
+    <div id="inwardModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Stock</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="inwardForm" class="modal-form">
+                <div class="form-group">
+                    <label for="partNumber">Part Number</label>
+                    <input type="text" id="partNumber" placeholder="Enter part number" required>
+                </div>
+                <div class="form-group">
+                    <label for="materialDesc">Material Description</label>
+                    <input type="text" id="materialDesc" placeholder="Enter material description" required>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <input type="number" id="quantity" min="1" placeholder="Enter quantity" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Stock</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Withdraw Modal -->
+    <div id="withdrawModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Stock Withdrawal</h2>
+                <button class="close-btn" onclick="closeWithdrawModal()">&times;</button>
+            </div>
+            <form id="withdrawForm" class="modal-form">
+                <div class="form-group">
+                    <label for="withdrawPartNumber">Part Number</label>
+                    <input type="text" id="withdrawPartNumber" placeholder="Enter part number" required>
+                </div>
+                <div class="form-group">
+                    <label for="withdrawQuantity">Quantity</label>
+                    <input type="number" id="withdrawQuantity" min="1" placeholder="Enter quantity" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeWithdrawModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" id="withdrawSubmitBtn">
+                        <i class="fas fa-minus"></i>
+                        <span>Withdraw Stock</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scrap Modal -->
+    <div id="scrapModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Scrap Stock</h2>
+                <button class="close-btn" onclick="closeScrapModal()">&times;</button>
+            </div>
+            <form id="scrapForm" class="modal-form">
+                <div class="form-group">
+                    <label for="scrapPartNumber">Part Number</label>
+                    <input type="text" id="scrapPartNumber" placeholder="Enter part number" required>
+                </div>
+                <div class="form-group">
+                    <label for="scrapQuantity">Quantity</label>
+                    <input type="number" id="scrapQuantity" min="1" placeholder="Enter quantity" required>
+                </div>
+                <div class="form-group">
+                    <label for="scrapReason">Reason</label>
+                    <textarea id="scrapReason" 
+                        class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-red-500 focus:ring focus:ring-red-200 transition-all resize-none"
+                        rows="3"
+                        placeholder="Enter reason for scrapping"
+                        required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeScrapModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" id="scrapSubmitBtn">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>Scrap Stock</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <main class="content">
+        <!-- Your stocks page content will go here -->
+    </main>
+
+    <!-- Add this just before the closing </body> tag -->
+    <script src="js/stock_inward.js"></script>
+</body>
+</html>
